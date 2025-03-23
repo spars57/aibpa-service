@@ -6,7 +6,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "build": "dotenv -e .env -- yarn db:migrate && yarn db:generate && yarn db:push && yarn db:pull && nest build -p tsconfig.build.json -o public",
+    "build": "dotenv -e .env -- yarn db:migrate && yarn db:generate && yarn db:push && yarn db:pull && nest build",
     "db:pull": "dotenv -e .env -- npx prisma db pull",
     "db:migrate": "dotenv -e .env -- npx prisma migrate dev",
     "db:generate": "dotenv -e .env -- npx prisma generate",
