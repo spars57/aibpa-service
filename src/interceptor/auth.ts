@@ -13,6 +13,9 @@ import AccessTokenRepository from 'src/respository/access-token'
 import { AccessToken } from 'src/types/access-token'
 
 @Injectable()
+/**
+ * Interceptor to validate the authorization to certain routes
+ */
 class AuthInterceptor implements NestInterceptor {
   private readonly logger: Logger
   private readonly env: Environment
@@ -21,6 +24,9 @@ class AuthInterceptor implements NestInterceptor {
     this.logger = new Logger(AuthInterceptor.name)
     this.env = new Environment()
   }
+  // ------------------------------------------------------------
+  // Public methods
+  // ------------------------------------------------------------
 
   public async intercept(context: ExecutionContext, next: CallHandler) {
     const request = context.switchToHttp().getRequest()
@@ -43,6 +49,15 @@ class AuthInterceptor implements NestInterceptor {
     return next.handle()
   }
 
+  // ------------------------------------------------------------
+  // Private methods
+  // ------------------------------------------------------------
+
+  /**
+   * Check if the token structure respects the database structure
+   * @param token - The token to check
+   * @returns true if the token structure is valid, false otherwise
+   */
   private checkIfTokenStructureRespectsDatabase(token: Record<string, unknown>): token is AccessToken {
     const invalidTokenStructureErrorMessage = 'Invalid token structure'
     const keys: (keyof AccessToken)[] = ['uuid', 'user_uuid', 'valid_from', 'valid_until', 'type']
@@ -55,6 +70,12 @@ class AuthInterceptor implements NestInterceptor {
     }
     return true
   }
+
+  /**
+   * Check if the token type is Bearer
+   * @param token - The token to check
+   * @returns true if the token type is valid, false otherwise
+   */
   private checkTokenType(token: string) {
     const notABaererTokenErrorMessage = 'Invalid token, expected a Bearer token'
     if (!token.includes('Bearer ')) {
@@ -63,6 +84,11 @@ class AuthInterceptor implements NestInterceptor {
     }
   }
 
+  /**
+   * Check if the request headers contain an authorization header
+   * @param request - The request to check
+   * @returns true if the request headers contain an authorization header, false otherwise
+   */
   private validateRequestHeaders(request: any) {
     const tokenErrorMessage = 'No token provided'
 
@@ -72,18 +98,38 @@ class AuthInterceptor implements NestInterceptor {
     }
   }
 
+  /**
+   * Extract the token from the request headers
+   * @param request - The request to extract the token from
+   * @returns the token
+   */
   private extractTokenFromRequestHeaders(request: any) {
     return request.headers['authorization']
   }
 
+  /**
+   * Extract the JWT token from the request token
+   * @param requestToken - The request token to extract the JWT token from
+   * @returns the JWT token
+   */
   private extractJwtTokenFromRequestToken(requestToken: string) {
     return requestToken.split(' ')[1]
   }
 
+  /**
+   * Decode the JWT token
+   * @param jwtToken - The JWT token to decode
+   * @returns the decoded JWT token
+   */
   private async decodeJwtToken(jwtToken: string) {
     return jwt.decode(jwtToken, this.env.get('JWT_SECRET'))
   }
 
+  /**
+   * Get the token from the database
+   * @param uuid - The UUID of the token to get
+   * @returns the token
+   */
   private async getTokenFromDatabase(uuid: string) {
     const token = await this.accessTokenRepository.findByUuid(uuid)
     if (!token) {
@@ -93,6 +139,11 @@ class AuthInterceptor implements NestInterceptor {
     return token
   }
 
+  /**
+   * Validate the token expiration
+   * @param token - The token to validate
+   * @returns true if the token is valid, false otherwise
+   */
   private validateTokenExpiration(token: AccessToken) {
     if (token.valid_until < Date.now()) {
       this.logger.error('Token expired')
@@ -100,6 +151,11 @@ class AuthInterceptor implements NestInterceptor {
     }
   }
 
+  /**
+   * Validate the token not yet valid
+   * @param token - The token to validate
+   * @returns true if the token is valid, false otherwise
+   */
   private validateTokenNotYetValid(token: AccessToken) {
     if (token.valid_from > Date.now()) {
       this.logger.error('Token not yet valid')
