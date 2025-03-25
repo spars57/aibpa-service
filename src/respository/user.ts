@@ -56,12 +56,12 @@ class UserRepository {
 
   private convertDatabaseUserToUser(user: User): InternalUser {
     return {
-      uuid: user.uuid,
-      name: user.name,
-      email: user.email,
-      password: user.password,
-      enabled: user.enabled,
-      created_at: user.created_at,
+      uuid: user?.uuid,
+      name: user?.name,
+      email: user?.email,
+      password: user?.password,
+      enabled: user?.enabled,
+      created_at: user?.created_at,
     }
   }
 }

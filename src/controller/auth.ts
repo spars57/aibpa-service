@@ -12,6 +12,7 @@ class AuthController extends BaseController {
 
   @Post('login')
   public async login(@Body() body: { name: User['name']; password: User['password'] }) {
+    console.log('login', body)
     const { name, password } = body
     return this.authService.login(name, password)
   }

@@ -21,6 +21,11 @@ class AuthService extends BaseService {
   // ------------------------------------------------------------
 
   public async login(name: User['name'], password: User['password']) {
+    if (!name || !password) {
+      this.logger.error('Name and password are required')
+      throw new HttpException('Name and password are required', HttpStatus.BAD_REQUEST)
+    }
+
     const user = (await this.validateIfUserExists(name, true)) as User
     await this.validatePassword(user!, password)
     return await this.generateToken(user!)
@@ -56,18 +61,21 @@ class AuthService extends BaseService {
   // ------------------------------------------------------------
 
   private async validateIfUserExists(name: User['name'], throwError: boolean = true): Promise<User | null> {
-    const errorMessage = `User with username ${name} not found`
+    const errorMessage = `User with username "${name}" not found`
     const user = await this.userRepository.getByName(name)
-    if (!user && throwError) {
+
+    const isDefined = Object.values(user ?? {}).every((value) => value !== null && value !== undefined)
+
+    if (!isDefined && throwError) {
       this.logger.error(errorMessage)
-      throw new HttpException(errorMessage, HttpStatus.NOT_FOUND)
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST)
     }
     return user
   }
 
   private async validatePassword(user: User, password: User['password']): Promise<void> {
     const hashedPassword = await this.hashPassword(password)
-    const errorMessage = `Invalid password for user ${user.name}`
+    const errorMessage = `Invalid password for user "${user.name}"`
     const isPasswordValid = await this.encrypt.compare(hashedPassword, user.password)
     if (!isPasswordValid) {
       this.logger.error(errorMessage)
