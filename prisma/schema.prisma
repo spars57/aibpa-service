@@ -8,23 +8,24 @@ datasource db {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  email        String        @unique
-  name         String?
-  password     String
-  created_at    DateTime      @default(now())
-  enabled      Boolean       @default(true)
-  uuid         String        @unique
-  accessTokens AccessToken[]
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String
+  uuid       String   @unique
+  created_at DateTime @default(now())
+  deleted    Boolean  @default(false)
+  username   String   @unique
 }
 
-
 model AccessToken {
-  id         Int            @id @default(autoincrement())
-  uuid       String         @unique
-  user_uuid  String
-  value      String         
-  user       User           @relation(fields: [user_uuid], references: [uuid])
+  id        Int    @id @default(autoincrement())
+  uuid      String @unique
+  user_uuid String
+  value     String
+}
 
-  @@index([user_uuid])
+model RefreshToken {
+  id        Int    @id @default(autoincrement())
+  user_uuid String
+  uuid      String @unique
 }

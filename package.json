@@ -11,6 +11,7 @@
     "db:migrate": "dotenv -e .env -- npx prisma migrate dev",
     "db:generate": "dotenv -e .env -- npx prisma generate",
     "db:push": "dotenv -e .env -- npx prisma db push",
+    "db:force-reset": "dotenv -e .env -- npx prisma db push --force-reset",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "dotenv -e .env -- nest start --watch",

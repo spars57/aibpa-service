@@ -7,9 +7,7 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap')
   const port = process.env.PORT ?? 3000
   app.enableCors({
-    origin: ['*'],
-    allowedHeaders: ['*'],
-    exposedHeaders: ['*'],
+    origin: ['http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })

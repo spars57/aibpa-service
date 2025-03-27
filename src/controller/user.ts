@@ -14,6 +14,11 @@ class UserController extends BaseController {
   public async getUser(@Req() req: Request, @Param('uuid') uuid: string) {
     return this.userService.getById(uuid)
   }
+
+  @Get()
+  public async getUsers(@Req() req: Request) {
+    return this.userService.getAll()
+  }
 }
 
 export default UserController

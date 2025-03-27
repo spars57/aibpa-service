@@ -8,20 +8,14 @@ import { v4 } from 'uuid'
 class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async getByName(name: InternalUser['name']): Promise<InternalUser | null> {
-    const user = await this.prisma.user
-      .findFirst({
-        where: {
-          name,
-        },
-      })
-      .then(this.convertDatabaseUserToUser)
+  public async getByName(username: InternalUser['username']): Promise<InternalUser | null> {
+    const user = await this.prisma.user.findFirst({ where: { username } }).then(this.convertDatabaseUserToUser)
 
     return user
   }
 
   public async create(
-    name: InternalUser['name'],
+    username: InternalUser['username'],
     password: InternalUser['password'],
     email: InternalUser['email'],
   ): Promise<InternalUser> {
@@ -29,9 +23,13 @@ class UserRepository {
 
     return await this.prisma.user
       .create({
-        data: { name, password, email, uuid, enabled: true },
+        data: { username, password, email, uuid },
       })
       .then(this.convertDatabaseUserToUser)
+  }
+
+  public async getAll(): Promise<InternalUser[]> {
+    return await this.prisma.user.findMany().then((users) => users.map(this.convertDatabaseUserToUser))
   }
 
   public async getByUuid(uuid: InternalUser['uuid']): Promise<InternalUser | null> {
@@ -57,11 +55,11 @@ class UserRepository {
   private convertDatabaseUserToUser(user: User): InternalUser {
     return {
       uuid: user?.uuid,
-      name: user?.name,
+      username: user?.username,
       email: user?.email,
       password: user?.password,
-      enabled: user?.enabled,
       created_at: user?.created_at,
+      deleted: user?.deleted,
     }
   }
 }

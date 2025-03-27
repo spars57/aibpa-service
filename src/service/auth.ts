@@ -20,13 +20,13 @@ class AuthService extends BaseService {
   // Public methods
   // ------------------------------------------------------------
 
-  public async login(name: User['name'], password: User['password']) {
-    if (!name || !password) {
+  public async login(username: User['username'], password: User['password']) {
+    if (!username || !password) {
       this.logger.error('Name and password are required')
       throw new HttpException('Name and password are required', HttpStatus.BAD_REQUEST)
     }
 
-    const user = (await this.validateIfUserExists(name, true)) as User
+    const user = (await this.validateIfUserExists(username, true)) as User
     await this.validatePassword(user!, password)
     return await this.generateToken(user!)
   }
@@ -49,10 +49,10 @@ class AuthService extends BaseService {
     return
   }
 
-  public async register(name: User['name'], password: User['password'], email: User['email']) {
+  public async register(username: User['username'], password: User['password'], email: User['email']) {
     await this.validateEmail(email, true)
     const hashedPassword = await this.hashPassword(password)
-    const newUser = await this.userRepository.create(name, hashedPassword, email)
+    const newUser = await this.userRepository.create(username, hashedPassword, email)
     return newUser
   }
 
@@ -60,9 +60,9 @@ class AuthService extends BaseService {
   // Private methods
   // ------------------------------------------------------------
 
-  private async validateIfUserExists(name: User['name'], throwError: boolean = true): Promise<User | null> {
-    const errorMessage = `User with username "${name}" not found`
-    const user = await this.userRepository.getByName(name)
+  private async validateIfUserExists(username: User['username'], throwError: boolean = true): Promise<User | null> {
+    const errorMessage = `User with username "${username}" not found`
+    const user = await this.userRepository.getByName(username)
 
     const isDefined = Object.values(user ?? {}).every((value) => value !== null && value !== undefined)
 
@@ -75,7 +75,7 @@ class AuthService extends BaseService {
 
   private async validatePassword(user: User, password: User['password']): Promise<void> {
     const hashedPassword = await this.hashPassword(password)
-    const errorMessage = `Invalid password for user "${user.name}"`
+    const errorMessage = `Invalid password for user "${user.username}"`
     const isPasswordValid = await this.encrypt.compare(hashedPassword, user.password)
     if (!isPasswordValid) {
       this.logger.error(errorMessage)

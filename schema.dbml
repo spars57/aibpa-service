@@ -1,0 +1,70 @@
+Table Users {
+  id int [primary key]
+  uuid uuid [note: "External ID"]
+  role_id uuid
+  email varchar
+  password varchar [note: "Encrypted with SHA254"]
+  created_at datetime
+  updated_at datetime
+  deleted boolean [default: false]
+}
+
+Table Roles {
+  id int [primary key]
+  uuid uuid [note: "External ID used to validate the role authority"]
+  name varchar
+  rank int
+}
+
+// This table is used to store the access token for the user
+Table AccessToken {
+  id int [primary key]
+  uuid uuid [note: "External ID used to validate the token authority"]
+  user_id uuid
+  refresh_token_id uuid
+  created_at datetime
+  expires_at datetime
+  deleted boolean [default: false]
+}
+
+Table RefreshToken {
+  id int [primary key]
+  uuid uuid [note: "External ID used to validate the token authority"]
+  access_token_id uuid
+  created_at datetime
+  expires_at datetime
+  deleted boolean [default: false]
+}
+
+Table Chats {
+  id int [primary key]
+  uuid uuid [note: "External ID used to validate the chat authority"]
+  user_id uuid
+  created_at datetime
+  updated_at datetime
+  deleted boolean [default: false]
+}
+
+Table Messages {
+  id int [primary key]
+  uuid uuid [note: "External ID used to validate the message authority"]
+  chat_id uuid
+  content varchar
+  type_id uuid
+  created_at datetime
+  deleted boolean [default: false]
+}
+
+Table MessageType {
+  id int [primary key]
+  uuid uuid [note: "External ID used to validate the message type authority"]
+  name varchar [note: "The type of the message, this can be user or Agent depending"]
+}
+
+
+Ref: Users.id < AccessToken.user_id
+Ref: Users.id < Chats.user_id
+Ref: Chats.uuid < Messages.chat_id 
+Ref: MessageType.uuid < Messages.type_id
+Ref: AccessToken.refresh_token_id < RefreshToken.id
+Ref: Users.role_id < Roles.id

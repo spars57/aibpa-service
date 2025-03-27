@@ -17,6 +17,10 @@ class UserService extends BaseService {
     }
     return user
   }
+
+  public async getAll() {
+    return this.userRepository.getAll()
+  }
 }
 
 export default UserService

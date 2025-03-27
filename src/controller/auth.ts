@@ -11,7 +11,7 @@ class AuthController extends BaseController {
   }
 
   @Post('login')
-  public async login(@Body() body: { name: User['name']; password: User['password'] }) {
+  public async login(@Body() body: { name: User['username']; password: User['password'] }) {
     console.log('login', body)
     const { name, password } = body
     return this.authService.login(name, password)
@@ -27,13 +27,13 @@ class AuthController extends BaseController {
   public async register(
     @Body()
     body: {
-      name: User['name']
+      username: User['username']
       password: User['password']
       email: User['email']
     },
   ) {
-    const { name, password, email } = body
-    return this.authService.register(name, password, email)
+    const { username, password, email } = body
+    return this.authService.register(username, password, email)
   }
 }
 
