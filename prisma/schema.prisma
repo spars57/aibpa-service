@@ -8,24 +8,27 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  email      String   @unique
-  password   String
-  uuid       String   @unique
-  created_at DateTime @default(now())
-  deleted    Boolean  @default(false)
-  username   String   @unique
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  password      String
+  uuid          String        @unique
+  created_at    DateTime      @default(now())
+  deleted       Boolean       @default(false)
+  username      String        @unique
+  updated_at    DateTime      @updatedAt
+  city          String
+  country       String
+  first_name    String
+  last_name     String
+  access_tokens AccessToken[]
 }
 
 model AccessToken {
-  id        Int    @id @default(autoincrement())
-  uuid      String @unique
-  user_uuid String
-  value     String
-}
-
-model RefreshToken {
-  id        Int    @id @default(autoincrement())
-  user_uuid String
-  uuid      String @unique
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique
+  user_uuid  String
+  deleted    Boolean  @default(false)
+  expires_at DateTime
+  value      String
+  user       User     @relation(fields: [user_uuid], references: [uuid])
 }

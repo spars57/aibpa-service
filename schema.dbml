@@ -1,5 +1,6 @@
 Table Users {
   id int [primary key]
+  username varchar [note: "Username of the user"]
   uuid uuid [note: "External ID"]
   role_id uuid
   email varchar
@@ -8,14 +9,6 @@ Table Users {
   updated_at datetime
   deleted boolean [default: false]
 }
-
-Table Roles {
-  id int [primary key]
-  uuid uuid [note: "External ID used to validate the role authority"]
-  name varchar
-  rank int
-}
-
 // This table is used to store the access token for the user
 Table AccessToken {
   id int [primary key]
@@ -67,4 +60,3 @@ Ref: Users.id < Chats.user_id
 Ref: Chats.uuid < Messages.chat_id 
 Ref: MessageType.uuid < Messages.type_id
 Ref: AccessToken.refresh_token_id < RefreshToken.id
-Ref: Users.role_id < Roles.id

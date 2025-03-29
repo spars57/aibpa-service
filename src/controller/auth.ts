@@ -1,8 +1,9 @@
-import { Body, Controller, HttpStatus, Param, Post, Res } from '@nestjs/common'
-import { User } from '@prisma/client'
+import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common'
 import { Response } from 'express'
 import BaseController from 'src/classes/base-controller'
 import AuthService from 'src/service/auth'
+import LoginRequest from 'src/types/request/login'
+import RegisterRequest from 'src/types/request/register'
 
 @Controller('auth')
 class AuthController extends BaseController {
@@ -11,29 +12,14 @@ class AuthController extends BaseController {
   }
 
   @Post('login')
-  public async login(@Body() body: { name: User['username']; password: User['password'] }) {
-    console.log('login', body)
-    const { name, password } = body
-    return this.authService.login(name, password)
-  }
-
-  @Post('logout/:uuid')
-  public async logout(@Res() res: Response, @Param('uuid') uuid: string) {
-    await this.authService.logout(uuid)
-    return res.status(HttpStatus.ACCEPTED).send()
+  public async login(@Body() body: LoginRequest) {
+    return this.authService.login(body)
   }
 
   @Post('register')
-  public async register(
-    @Body()
-    body: {
-      username: User['username']
-      password: User['password']
-      email: User['email']
-    },
-  ) {
-    const { username, password, email } = body
-    return this.authService.register(username, password, email)
+  public async register(@Body() body: RegisterRequest, @Res() res: Response) {
+    const user = await this.authService.register(body)
+    res.status(HttpStatus.CREATED).send(user)
   }
 }
 

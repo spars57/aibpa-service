@@ -10,7 +10,7 @@ import {
 import * as jwt from 'jwt-simple'
 import Environment from 'src/classes/env'
 import AccessTokenRepository from 'src/respository/access-token'
-import { AccessToken } from 'src/types/access-token'
+import { InternalAccessToken } from 'src/types/dto/access-token'
 
 @Injectable()
 /**
@@ -58,9 +58,9 @@ class AuthInterceptor implements NestInterceptor {
    * @param token - The token to check
    * @returns true if the token structure is valid, false otherwise
    */
-  private checkIfTokenStructureRespectsDatabase(token: Record<string, unknown>): token is AccessToken {
+  private checkIfTokenStructureRespectsDatabase(token: Record<string, unknown>): token is InternalAccessToken {
     const invalidTokenStructureErrorMessage = 'Invalid token structure'
-    const keys: (keyof AccessToken)[] = ['uuid', 'user_uuid', 'valid_from', 'valid_until', 'type']
+    const keys: (keyof InternalAccessToken)[] = ['user', 'accessToken']
 
     for (const key of keys) {
       if (!token[key]) {
@@ -144,8 +144,8 @@ class AuthInterceptor implements NestInterceptor {
    * @param token - The token to validate
    * @returns true if the token is valid, false otherwise
    */
-  private validateTokenExpiration(token: AccessToken) {
-    if (token.valid_until < Date.now()) {
+  private validateTokenExpiration(token: InternalAccessToken) {
+    if (token.accessToken.expires_at < new Date()) {
       this.logger.error('Token expired')
       throw new HttpException('Token expired', HttpStatus.UNAUTHORIZED)
     }
@@ -156,8 +156,8 @@ class AuthInterceptor implements NestInterceptor {
    * @param token - The token to validate
    * @returns true if the token is valid, false otherwise
    */
-  private validateTokenNotYetValid(token: AccessToken) {
-    if (token.valid_from > Date.now()) {
+  private validateTokenNotYetValid(token: InternalAccessToken) {
+    if (token.accessToken.expires_at > new Date()) {
       this.logger.error('Token not yet valid')
       throw new HttpException('Token not yet valid', HttpStatus.UNAUTHORIZED)
     }
