@@ -13,7 +13,6 @@ model User {
   password      String
   uuid          String        @unique
   created_at    DateTime      @default(now())
-  deleted       Boolean       @default(false)
   username      String        @unique
   updated_at    DateTime      @updatedAt
   city          String
@@ -27,7 +26,6 @@ model AccessToken {
   id         Int      @id @default(autoincrement())
   uuid       String   @unique
   user_uuid  String
-  deleted    Boolean  @default(false)
   expires_at DateTime
   value      String
   user       User     @relation(fields: [user_uuid], references: [uuid])

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { User } from '@prisma/client'
+import { AccessToken, User } from '@prisma/client'
 import BaseService from 'src/classes/base-service'
 import AccessTokenRepository from 'src/respository/access-token'
 import UserRepository from 'src/respository/user'
@@ -16,11 +16,6 @@ class AuthService extends BaseService {
   ) {
     super(AuthService.name)
   }
-
-  // ------------------------------------------------------------
-  // Public methods
-  // ------------------------------------------------------------
-
   /**
    * Logs in a user
    * @param body The login request body
@@ -28,23 +23,17 @@ class AuthService extends BaseService {
    * @throws HttpException if the email or password is invalid
    */
   public async login(body: LoginRequest): Promise<AccessTokenResponse | null> {
-    const { email, password } = body
+    await this.validateLoginRequest(body)
 
-    if (!email || !password) {
-      const emailAndPasswordRequiredMessage = 'Email and password are required'
-      this.logger.error(emailAndPasswordRequiredMessage)
-      throw new HttpException(emailAndPasswordRequiredMessage, HttpStatus.BAD_REQUEST)
-    }
-
-    const user = await this.userRepository.getByEmail(email)
+    const user = await this.userRepository.getByEmail(body.email)
 
     if (!user) {
-      const userNotFoundMessage = `User with email "${email}" not found`
+      const userNotFoundMessage = `User with email "${body.email}" not found`
       this.logger.error(userNotFoundMessage)
       throw new HttpException(userNotFoundMessage, HttpStatus.NOT_FOUND)
     }
 
-    const hashedPassword = await this.encrypt.encrypt(password)
+    const hashedPassword = await this.encrypt.encrypt(body.password)
     const passwordsMatch = await this.encrypt.compare(hashedPassword, user.password)
 
     if (!passwordsMatch) {
@@ -53,166 +42,166 @@ class AuthService extends BaseService {
       throw new HttpException(invalidPasswordMessage, HttpStatus.UNAUTHORIZED)
     }
 
-    const accessToken = await this.jwt.generate({
-      uuid: user.uuid,
-      email: user.email,
-      username: user.username,
+    const accessTokenUuid = v4()
+
+    const accessTokenValue = await this.jwt.generate({
+      uuid: accessTokenUuid,
+      userUuid: user.uuid,
     })
 
-    return { accessToken }
-  }
+    const accessToken: AccessToken = {
+      uuid: accessTokenUuid,
+      user_uuid: user.uuid,
+      expires_at: new Date(Date.now() + Number(this.env.get('JWT_VALIDITY_PERIOD'))),
+      value: accessTokenValue,
+    } as AccessToken
 
+    const dbAccessToken = await this.accessTokenRepository.create(accessToken)
+    this.logger.verbose(dbAccessToken)
+
+    return { accessToken: accessTokenValue }
+  }
+  /**
+   * Validates the login request
+   * @param body The login request body
+   * @throws HttpException if the request is invalid
+   */
+  private async validateLoginRequest(body: LoginRequest) {
+    if (!body.email) {
+      this.logger.error('Email is required')
+      throw new HttpException('Email is required', HttpStatus.BAD_REQUEST)
+    }
+
+    if (!body.password) {
+      this.logger.error('Password is required')
+      throw new HttpException('Password is required', HttpStatus.BAD_REQUEST)
+    }
+  }
+  /**
+   * Registers a new user
+   * @param body The register request body
+   * @returns The created user
+   * @throws HttpException if the request is invalid
+   */
   public async register(body: RegisterRequest) {
-    if (!body.email || !body.password) {
-      this.logger.error('Email and password are required')
-      throw new HttpException('Email and password are required', HttpStatus.BAD_REQUEST)
-    }
-
-    const user = await this.userRepository.getByEmail(body.email)
-
-    if (user) {
-      this.logger.error(`User with email ${body.email} already exists`)
-      throw new HttpException(`User with email ${body.email} already exists`, HttpStatus.CONFLICT)
-    }
-
-    const payload = await this.buildUserFromRegisterRequest(body)
-
-    return await this.userRepository.create(payload)
+    await this.validateRegisterRequest(body)
+    return await this.buildUserFromRegisterRequest(body).then((user) => this.userRepository.create(user))
   }
+  /**
+   * Validates the register request
+   * @param body The register request body
+   * @throws HttpException if the request is invalid
+   */
+  private async validateRegisterRequest(body: RegisterRequest) {
+    if (!body.email) {
+      this.logger.error('Email is required')
+      throw new HttpException('Email is required', HttpStatus.BAD_REQUEST)
+    }
 
+    if (!body.password) {
+      this.logger.error('Password is required')
+      throw new HttpException('Password is required', HttpStatus.BAD_REQUEST)
+    }
+
+    if (!body.username) {
+      this.logger.error('Username is required')
+      throw new HttpException('Username is required', HttpStatus.BAD_REQUEST)
+    }
+
+    if (!body.firstName) {
+      this.logger.error('First name is required')
+      throw new HttpException('First name is required', HttpStatus.BAD_REQUEST)
+    }
+
+    if (!body.lastName) {
+      this.logger.error('Last name is required')
+      throw new HttpException('Last name is required', HttpStatus.BAD_REQUEST)
+    }
+
+    if (!body.city) {
+      this.logger.error('City is required')
+      throw new HttpException('City is required', HttpStatus.BAD_REQUEST)
+    }
+
+    if (!body.country) {
+      this.logger.error('Country is required')
+      throw new HttpException('Country is required', HttpStatus.BAD_REQUEST)
+    }
+
+    const userByEmail = await this.userRepository.getByEmail(body.email)
+    const userByUsername = await this.userRepository.getByName(body.username)
+
+    if (userByEmail) {
+      const userAlreadyExistsMessage = `User with email "${body.email}" already exists.`
+      this.logger.error(userAlreadyExistsMessage)
+      throw new HttpException(userAlreadyExistsMessage, HttpStatus.CONFLICT)
+    }
+
+    if (userByUsername) {
+      const userAlreadyExistsMessage = `User with username "${body.username}" already exists.`
+      this.logger.error(userAlreadyExistsMessage)
+      throw new HttpException(userAlreadyExistsMessage, HttpStatus.CONFLICT)
+    }
+  }
+  /**
+   * Builds a user from the register request
+   * @param body The register request body
+   * @returns The created user
+   */
   private async buildUserFromRegisterRequest(body: RegisterRequest): Promise<User> {
     const hashedPassword = await this.encrypt.encrypt(body.password)
     return {
-      id: 0,
       email: body.email,
       password: hashedPassword,
       uuid: v4(),
       created_at: new Date(),
-      deleted: false,
       updated_at: new Date(),
       username: body.username,
       city: body.city,
       country: body.country,
       first_name: body.firstName,
       last_name: body.lastName,
-    }
+    } as User
   }
+  /**
+   * Logs out a user
+   * @param req The request object
+   * @returns The logout response
+   */
+  public async logout(req: Request) {
+    const jwtToken = req.headers?.['authorization']?.split(' ')[1]
 
-  // public async logout(uuid: User['uuid']) {
-  //   const user = await this.userRepository.getByUuid(uuid)
-  //   if (!user) {
-  //     this.logger.error(`User with uuid ${uuid} not found`)
-  //     throw new HttpException(`User with uuid ${uuid} not found`, HttpStatus.NOT_FOUND)
-  //   }
+    if (!jwtToken) {
+      const noTokenMessage = 'No token provided'
+      this.logger.error(noTokenMessage)
+      throw new HttpException(noTokenMessage, HttpStatus.UNAUTHORIZED)
+    }
 
-  //   const accessToken = await this.accessTokenRepository.findByUserUuid(user.uuid)
+    const accessToken = await this.jwt.decode<{ uuid: AccessToken['uuid']; userUuid: User['uuid'] }>(jwtToken!)
 
-  //   if (!accessToken) {
-  //     this.logger.error(`Access token with user uuid ${user.uuid} not found`)
-  //     throw new HttpException(`Access token with user uuid ${user.uuid} not found`, HttpStatus.NOT_FOUND)
-  //   }
+    const user = await this.userRepository.getByUuid(accessToken.userUuid)
 
-  //   await this.accessTokenRepository.delete(accessToken.uuid, user.uuid)
-  //   return
-  // }
+    if (!user) {
+      const userNotFoundMessage = `User with uuid "${accessToken.userUuid}" not found`
+      this.logger.error(userNotFoundMessage)
+      throw new HttpException(userNotFoundMessage, HttpStatus.NOT_FOUND)
+    }
 
-  // public async register(username: User['username'], password: User['password'], email: User['email']) {
-  //   await this.validateEmail(email, true)
-  //   const hashedPassword = await this.hashPassword(password)
-  //   const newUser = await this.userRepository.create(username, hashedPassword, email)
-  //   return newUser
-  // }
+    const dbAccessToken = await this.accessTokenRepository.findByUuid(accessToken.uuid)
 
-  // // ------------------------------------------------------------
-  // // Private methods
-  // // ------------------------------------------------------------
+    if (!dbAccessToken) {
+      const accessTokenNotFoundMessage = `Access token with uuid "${accessToken.uuid}" not found`
+      this.logger.error(accessTokenNotFoundMessage)
+      throw new HttpException(accessTokenNotFoundMessage, HttpStatus.NOT_FOUND)
+    }
 
-  // private async validateIfUserExists(username: User['username'], throwError: boolean = true): Promise<User | null> {
-  //   const errorMessage = `User with username "${username}" not found`
-  //   const user = await this.userRepository.getByName(username)
+    if (dbAccessToken.user_uuid !== user.uuid) {
+      const accessTokenNotFoundMessage = `Access token with uuid "${accessToken.uuid}" not found`
+      this.logger.error(accessTokenNotFoundMessage)
+      throw new HttpException(accessTokenNotFoundMessage, HttpStatus.NOT_FOUND)
+    }
 
-  //   const isDefined = Object.values(user ?? {}).every((value) => value !== null && value !== undefined)
-
-  //   if (!isDefined && throwError) {
-  //     this.logger.error(errorMessage)
-  //     throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST)
-  //   }
-  //   return user
-  // }
-
-  // private async validatePassword(user: User, password: User['password']): Promise<void> {
-  //   const hashedPassword = await this.hashPassword(password)
-  //   const errorMessage = `Invalid password for user "${user.username}"`
-  //   const isPasswordValid = await this.encrypt.compare(hashedPassword, user.password)
-  //   if (!isPasswordValid) {
-  //     this.logger.error(errorMessage)
-  //     throw new HttpException(errorMessage, HttpStatus.UNAUTHORIZED)
-  //   }
-  // }
-
-  // private async validateEmail(email: User['email'], throwError: boolean = true) {
-  //   const errorMessage = `User with email ${email} already exists`
-  //   const user = await this.userRepository.getByEmail(email)
-  //   if (user && throwError) {
-  //     this.logger.error(errorMessage)
-  //     throw new HttpException(errorMessage, HttpStatus.CONFLICT)
-  //   }
-  // }
-
-  // private async hashPassword(password: string) {
-  //   return this.encrypt.encrypt(password)
-  // }
-
-  // private buildAccessTokenPayload(user: User) {
-  //   return {
-  //     uuid: v4(),
-  //     user_uuid: user.uuid,
-  //     valid_from: Date.now(),
-  //   }
-  // }
-
-  // private async generateToken(user: User) {
-  //   const accessTokenUuid = v4()
-  //   const refreshTokenUuid = v4()
-
-  //   const accessTokenPayload: InternalAccessToken = {
-  //     uuid: accessTokenUuid,
-  //     user_uuid: user.uuid,
-  //     expires_at: Date.now() + Number(this.env.get('JWT_VALIDITY_PERIOD')),
-  //   }
-
-  //   const refreshTokenPayload: InternalAccessToken = {
-  //     uuid: refreshTokenUuid,
-  //     user_uuid: user.uuid,
-  //     expires_at: Date.now() + Number(this.env.get('JWT_VALIDITY_PERIOD')) * 2,
-  //   }
-
-  //   const jwtAccessToken = jwt.encode(accessTokenPayload, this.env.get('JWT_SECRET'))
-
-  //   const jwtRefreshToken = jwt.encode(refreshTokenPayload, this.env.get('JWT_SECRET'))
-
-  //   const accessToken = await this.accessTokenRepository.create({
-  //     uuid: accessTokenPayload.uuid,
-  //     user_uuid: user.uuid,
-  //     deleted: false,
-  //     expires_at: accessTokenPayload.expires_at,
-  //   })
-
-  //   return {
-  //     accessToken: accessToken.value,
-  //   }
-  // }
-
-  // private async decodeToken(token: string) {
-  //   const decoded = jwt.decode(token, this.env.get('JWT_SECRET')) as any
-  //   return decoded as InternalAccessToken
-  // }
-
-  // private async validateToken(token: string) {
-  //   const decoded = await this.decodeToken(token)
-  //   this.logger.log(decoded)
-  //   return false
-  // }
+    return this.accessTokenRepository.delete(accessToken.uuid, user.uuid)
+  }
 }
-
 export default AuthService

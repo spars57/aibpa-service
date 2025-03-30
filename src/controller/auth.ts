@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common'
+import { Body, Controller, Get, HttpStatus, Post, Req, Res } from '@nestjs/common'
 import { Response } from 'express'
 import BaseController from 'src/classes/base-controller'
 import AuthService from 'src/service/auth'
@@ -21,6 +21,17 @@ class AuthController extends BaseController {
     const user = await this.authService.register(body)
     res.status(HttpStatus.CREATED).send(user)
   }
+
+  @Get('logout')
+  public async logout(@Req() req: Request, @Res() res: Response) {
+    await this.authService.logout(req)
+    res.status(HttpStatus.OK).send({ message: 'Logged out successfully' })
+  }
+
+  // @Post('identity')
+  // public async identity(@Req() req: Request) {
+  //   return req.user
+  // }
 }
 
 export default AuthController
