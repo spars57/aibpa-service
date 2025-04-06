@@ -9,8 +9,8 @@ import ChatProcessor from '../chat/chatProcessor';
 export class ChatService {
   constructor(
     @Inject('CHAT_SERVICE') private readonly chatClient: ClientProxy,
-    private readonly chatRepository: ChatRepository,  // Usando o repositório de chat
-    private readonly messageRepository: MessageRepository,  // Usando o repositório de mensagens
+    private readonly chatRepository: ChatRepository,  
+    private readonly messageRepository: MessageRepository, 
   ) {}
 
   // Criar um novo chat para um usuário
@@ -20,40 +20,40 @@ export class ChatService {
       title,
     };
 
-    return this.chatRepository.create(chatData);  // Usando o repositório para criar chat
+    return this.chatRepository.create(chatData);  
   }
 
   // Listar todos os chats de um usuário
   async getUserChats(userId: number) {
-    return this.chatRepository.getByUserId(userId);  // Usando o repositório para obter chats do usuário
+    return this.chatRepository.getByUserId(userId); 
   }
 
   // Buscar todas as mensagens de um chat específico
   async getMessages(chatId: number) {
-    return this.messageRepository.getByChatId(chatId);  // Usando o repositório para buscar mensagens do chat
+    return this.messageRepository.getByChatId(chatId);  
   }
 
   // Enviar uma mensagem para um chat
   async sendMessage(chatId: string, userId: string, content: string) {
-    console.log(`📤 Enviando mensagem para RabbitMQ: ${content}`);
+    console.log(`📤 Sending Message to RabbitMQ: ${content}`);
 
     const chatIdInt = parseInt(chatId, 10);
     const userIdInt = parseInt(userId, 10);
 
     if (isNaN(chatIdInt) || isNaN(userIdInt)) {
-      throw new Error('chatId e userId devem ser números válidos');
+      throw new Error('chatId e userId must be valid');
     }
 
     // Verificar se o chat existe
     const chat = await this.chatRepository.getById(chatIdInt);
     if (!chat) {
-      throw new Error(`Chat com id ${chatIdInt} não encontrado.`);
+      throw new Error(`Chat with id ${chatIdInt} not found.`);
     }
 
     // Verificar se o usuário existe
     const user = await this.chatRepository.getByUserId(userIdInt);
     if (!user) {
-      throw new Error(`Usuário com id ${userIdInt} não encontrado.`);
+      throw new Error(`User id ${userIdInt} not found.`);
     }
 
     // Criar a mensagem na base de dados

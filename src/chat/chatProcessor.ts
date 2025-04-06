@@ -15,26 +15,26 @@ export class ChatProcessor {
   @EventPattern('chat_request')
   async handleChatRequest(@Payload() message: any) {
     try {
-      this.logger.log(`📩 Recebendo mensagem do RabbitMQ: ${JSON.stringify(message)}`);
+      this.logger.log(`📩 Getting Message from RabbitMQ: ${JSON.stringify(message)}`);
 
       if (!message.chat_id || !message.content) {
         throw new Error('Mensagem inválida: chat_id e content são obrigatórios');
       }
 
-      // Processa a mensagem - salvar no banco de dados
+      // Processa a mensagem 
       const savedMessage = await this.prisma.message.create({
         data: {
           chat_id: message.chat_id,
-          user_id: message.user_id || 1, // Usa o user_id da mensagem ou 1 como fallback
-          content: message.content,
+          user_id: message.user_id || 1, 
+          content: 'Resposta: ' +  message.content,
           is_agent: true,
         },
       });
 
-      this.logger.log(`📥 Mensagem processada e salva na BD: ${JSON.stringify(savedMessage)}`);
+      this.logger.log(`📥 Message processed: ${JSON.stringify(savedMessage)}`);
       return savedMessage;
     } catch (error) {
-      this.logger.error(`❌ Erro ao processar mensagem: ${error.message}`);
+      this.logger.error(`❌ Error: ${error.message}`);
       throw error;
     }
   }
