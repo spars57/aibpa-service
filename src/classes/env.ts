@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common'
 
-const keys = ['SALT', 'NODE_ENV', 'PORT', 'DATABASE_URL', 'JWT_SECRET', 'JWT_VALIDITY_PERIOD'] as const
+const keys = ['SALT', 'NODE_ENV', 'PORT', 'DATABASE_URL', 'JWT_SECRET', 'JWT_VALIDITY_PERIOD', 'LANGFLOW_URL'] as const
 
 type EnvKey = (typeof keys)[number]
 
@@ -13,7 +13,7 @@ class Environment {
   private DATABASE_URL: string
   private JWT_SECRET: string
   private JWT_VALIDITY_PERIOD: string
-
+  private LANGFLOW_URL: string
   private checkIfEnvIsSet(key: EnvKey) {
     //this.logger.log(`Checking if environment variable ${key} is set`);
     if (!process.env[key]) {
