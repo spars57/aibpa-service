@@ -7,6 +7,7 @@ import {
   Logger,
   NestInterceptor,
 } from '@nestjs/common'
+import { AccessToken } from '@prisma/client'
 import * as jwt from 'jwt-simple'
 import Environment from 'src/classes/env'
 import AccessTokenRepository from 'src/respository/access-token'
@@ -40,11 +41,9 @@ class AuthInterceptor implements NestInterceptor {
 
     this.checkIfTokenStructureRespectsDatabase(decodeJwtToken)
 
-    const { value } = await this.getTokenFromDatabase(decodeJwtToken.uuid)
-    const decodedToken = await this.decodeJwtToken(value)
+    const accessToken = await this.getTokenFromDatabase(decodeJwtToken.uuid)
 
-    this.validateTokenExpiration(decodedToken)
-    this.validateTokenNotYetValid(decodedToken)
+    this.validateTokenExpiration(accessToken)
 
     return next.handle()
   }
@@ -60,10 +59,14 @@ class AuthInterceptor implements NestInterceptor {
    */
   private checkIfTokenStructureRespectsDatabase(token: Record<string, unknown>): token is InternalAccessToken {
     const invalidTokenStructureErrorMessage = 'Invalid token structure'
-    const keys: (keyof InternalAccessToken)[] = ['user', 'accessToken']
+    const keys: (keyof InternalAccessToken)[] = ['userUuid', 'uuid']
+
+    this.logger.log('Checking if token structure respects database', token)
+
+    const tokenKeys = Object.keys(token)
 
     for (const key of keys) {
-      if (!token[key]) {
+      if (!tokenKeys.includes(key)) {
         this.logger.error(invalidTokenStructureErrorMessage)
         throw new HttpException(invalidTokenStructureErrorMessage, HttpStatus.UNAUTHORIZED)
       }
@@ -90,6 +93,7 @@ class AuthInterceptor implements NestInterceptor {
    * @returns true if the request headers contain an authorization header, false otherwise
    */
   private validateRequestHeaders(request: any) {
+    this.logger.log('Validating request headers')
     const tokenErrorMessage = 'No token provided'
 
     if (!request.headers['authorization']) {
@@ -104,6 +108,7 @@ class AuthInterceptor implements NestInterceptor {
    * @returns the token
    */
   private extractTokenFromRequestHeaders(request: any) {
+    this.logger.log('Extracting token from request headers')
     return request.headers['authorization']
   }
 
@@ -113,6 +118,7 @@ class AuthInterceptor implements NestInterceptor {
    * @returns the JWT token
    */
   private extractJwtTokenFromRequestToken(requestToken: string) {
+    this.logger.log('Extracting JWT token from request token')
     return requestToken.split(' ')[1]
   }
 
@@ -122,6 +128,7 @@ class AuthInterceptor implements NestInterceptor {
    * @returns the decoded JWT token
    */
   private async decodeJwtToken(jwtToken: string) {
+    this.logger.log('Decoding JWT token')
     return jwt.decode(jwtToken, this.env.get('JWT_SECRET'))
   }
 
@@ -131,6 +138,7 @@ class AuthInterceptor implements NestInterceptor {
    * @returns the token
    */
   private async getTokenFromDatabase(uuid: string) {
+    this.logger.log('Getting token from database')
     const token = await this.accessTokenRepository.findByUuid(uuid)
     if (!token) {
       this.logger.error('Token not found on database')
@@ -144,22 +152,11 @@ class AuthInterceptor implements NestInterceptor {
    * @param token - The token to validate
    * @returns true if the token is valid, false otherwise
    */
-  private validateTokenExpiration(token: InternalAccessToken) {
-    if (token.accessToken.expires_at < new Date()) {
+  private validateTokenExpiration(token: AccessToken) {
+    this.logger.log('Validating token expiration')
+    if (token.expires_at < new Date()) {
       this.logger.error('Token expired')
       throw new HttpException('Token expired', HttpStatus.UNAUTHORIZED)
-    }
-  }
-
-  /**
-   * Validate the token not yet valid
-   * @param token - The token to validate
-   * @returns true if the token is valid, false otherwise
-   */
-  private validateTokenNotYetValid(token: InternalAccessToken) {
-    if (token.accessToken.expires_at > new Date()) {
-      this.logger.error('Token not yet valid')
-      throw new HttpException('Token not yet valid', HttpStatus.UNAUTHORIZED)
     }
   }
 }

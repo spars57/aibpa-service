@@ -11,7 +11,7 @@ model User {
   id            Int           @id @default(autoincrement())
   email         String        @unique
   password      String
-  uuid          String        @unique
+  uuid          String        @unique @default(uuid())
   created_at    DateTime      @default(now())
   username      String        @unique
   updated_at    DateTime      @updatedAt
@@ -20,13 +20,38 @@ model User {
   first_name    String
   last_name     String
   access_tokens AccessToken[]
+  chats         Chat[]        @relation("UserChats")
+  messages      Message[]     @relation("UserMessages")
 }
 
 model AccessToken {
   id         Int      @id @default(autoincrement())
-  uuid       String   @unique
+  uuid       String   @unique @default(uuid())
   user_uuid  String
   expires_at DateTime
   value      String
   user       User     @relation(fields: [user_uuid], references: [uuid])
+}
+
+model Chat {
+  id         Int       @id @default(autoincrement())
+  chat_uuid  String    @unique @default(uuid())
+  title      String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  user_id    Int
+  user       User      @relation("UserChats", fields: [user_id], references: [id])
+  messages   Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  chat_id   Int
+  content   String
+  timestamp DateTime @default(now())
+  is_agent  Boolean  @default(false)
+  user_id   Int
+  chat      Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  user      User     @relation("UserMessages", fields: [user_id], references: [id])
 }

@@ -22,7 +22,7 @@ class LangflowService extends BaseService {
       this.logger.error(error)
       throw error
     })
-    return response?.text()
+    return await response.json()
   }
 }
 
