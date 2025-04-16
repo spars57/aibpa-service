@@ -34,7 +34,7 @@ class ChatRepository {
     });
   }
 
-  // Buscar todos os chats de um usuário
+  // Buscar todos os chats de um user
   public async getByUserId(user_id: number): Promise<Chat[]> {
     return await this.prisma.chat.findMany({
       where: { user_id },

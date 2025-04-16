@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe  } from '@nestjs/common';
 import { ChatService } from '../service/chatservice';
 import ChatProcessor from '../chat/chatProcessor';
 
@@ -14,8 +14,10 @@ export class ChatController {
 
   //  Buscar todos os chats de um usuário
   @Get('user/:userId')
-  async getUserChats(@Param('userId') userId: number) {
-    return this.chatService.getUserChats(userId);
+  async getUserChats(@Param('userId') userId: string) {
+    const userIdInt = parseInt(userId, 10);  
+
+    return this.chatService.getUserChats(userIdInt);
   }
 
   //  Buscar todas as mensagens de um chat
