@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe  } from '@nestjs/common';
-import { ChatService } from '../service/chatservice';
-import ChatProcessor from '../chat/chatProcessor';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common'
+import { Chat, User } from '@prisma/client'
+import { ChatService } from '../service/chatservice'
 
 @Controller('chat')
 export class ChatController {
@@ -8,38 +8,31 @@ export class ChatController {
 
   //  Criar um novo chat
   @Post()
-  async createChat(@Body('userId') userId: number, @Body('title') title: string) {
-    return this.chatService.createChat(userId, title);
+  async createChat(@Body('userId') userId: User['id'], @Body('title') title: string) {
+    return this.chatService.createChat(userId, title)
   }
 
   //  Buscar todos os chats de um usuário
   @Get('user/:userId')
-  async getUserChats(@Param('userId') userId: string) {
-    const userIdInt = parseInt(userId, 10);  
-
-    return this.chatService.getUserChats(userIdInt);
+  async getUserChats(@Param('userId') userId: User['id']) {
+    return this.chatService.getUserChats(userId)
   }
 
   //  Buscar todas as mensagens de um chat
   @Get(':chatId/messages')
-  async getMessages(@Param('chatId') chatId: string) {
-    const chatIdInt = parseInt(chatId, 10);  
-    if (isNaN(chatIdInt)) {
-      throw new Error('chatId deve ser um número válido');
-    }
-    return this.chatService.getMessages(chatIdInt);  
+  async getMessages(@Param('chatId') chatId: Chat['id']) {
+    return this.chatService.getMessages(chatId)
   }
-  
 
   //  Enviar uma mensagem para um chat
   @Post(':chatId/messages')
   async sendMessage(
-    @Param('chatId') chatId: string,
-    @Body('userId') userId: string,
+    @Param('chatId') chatId: Chat['id'],
+    @Body('userId') userId: User['id'],
     @Body('content') content: string,
   ) {
-    return this.chatService.sendMessage(chatId, userId, content);
+    return this.chatService.sendMessage(chatId, userId, content)
   }
 }
 
-export default ChatController;
+export default ChatController
