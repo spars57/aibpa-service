@@ -50,7 +50,7 @@ model Message {
   uuid      String   @unique @default(uuid())
   chat_id   Int
   content   String
-  timestamp DateTime @default(now())
+  created_at DateTime @default(now())
   is_agent  Boolean  @default(false)
   user_id   Int
   chat      Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)

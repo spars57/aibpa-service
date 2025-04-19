@@ -35,9 +35,10 @@ class ChatRepository {
   }
 
   // Buscar todos os chats de um user
-  public async getByUserId(user_id: User['id']): Promise<Chat[]> {
+  public async getByUserUuid(userUuid: User['uuid']): Promise<Chat[]> {
     return await this.prisma.chat.findMany({
-      where: { user_id },
+      where: { user: { uuid: userUuid } },
+      orderBy: { created_at: 'asc' },
     })
   }
 
@@ -70,7 +71,7 @@ class ChatRepository {
       where: { id },
       include: {
         messages: {
-          orderBy: { timestamp: 'asc' },
+          orderBy: { created_at: 'asc' },
         },
       },
     })

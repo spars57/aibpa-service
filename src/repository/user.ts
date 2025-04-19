@@ -22,7 +22,7 @@ class UserRepository {
   }
 
   public async getByUuid(uuid: User['uuid']): Promise<User | null> {
-    return await this.prisma.user.findUnique({
+    return await this.prisma.user.findFirst({
       where: {
         uuid,
       },
@@ -30,7 +30,7 @@ class UserRepository {
   }
 
   public async getById(id: User['id']): Promise<User | null> {
-    return await this.prisma.user.findUnique({
+    return await this.prisma.user.findFirst({
       where: {
         id: parseInt(id.toString()),
       },

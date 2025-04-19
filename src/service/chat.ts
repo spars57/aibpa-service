@@ -1,7 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { ClientProxy } from '@nestjs/microservices'
 import { Chat, User } from '@prisma/client'
 import BaseService from 'src/classes/base-service'
+import { ChatMessages } from 'src/controller/chat/messages'
+import UserRepository from 'src/repository/user'
+import CreateMessageRequest from 'src/types/request/chat/create-message'
+import CreateChatResponse from 'src/types/response/chat/create-chat'
+import GetMessageResponse from 'src/types/response/chat/get-message'
 import ChatRepository from '../repository/chat'
 import MessageRepository from '../repository/message'
 
@@ -11,62 +16,73 @@ export class ChatService extends BaseService {
     @Inject('CHAT_SERVICE') private readonly chatClient: ClientProxy,
     private readonly chatRepository: ChatRepository,
     private readonly messageRepository: MessageRepository,
+    private readonly userRepository: UserRepository,
   ) {
     super(ChatService.name)
   }
 
-  // Criar um novo chat para um usuário
-  async createChat(userId: User['id'], title: string) {
-    const chatData = {
-      user_id: userId,
-      title,
-    }
-
-    return this.chatRepository.create(chatData)
-  }
-
-  // Listar todos os chats de um usuário
-  async getUserChats(userId: User['id']) {
-    return this.chatRepository.getByUserId(userId)
-  }
-
-  // Buscar todas as mensagens de um chat específico
-  async getMessages(chatId: Chat['id']) {
-    return this.messageRepository.getByChatId(chatId)
-  }
-
-  // Enviar uma mensagem para um chat
-  async sendMessage(chatId: Chat['id'], userId: User['id'], content: string) {
-    this.logger.verbose(`📤 Sending Message to RabbitMQ: ${content}`)
-
-    if (isNaN(chatId) || isNaN(userId)) {
-      throw new Error('chatId e userId must be valid')
-    }
-
-    // Verificar se o chat existe
-    const chat = await this.chatRepository.getById(chatId)
-    if (!chat) {
-      throw new Error(`Chat with id ${chatId} not found.`)
-    }
-
-    // Verificar se o usuário existe
-    const user = await this.chatRepository.getByUserId(userId)
+  async createChat(userUuid: User['uuid']) {
+    const user = await this.userRepository.getByUuid(userUuid)
     if (!user) {
-      throw new Error(`User id ${userId} not found.`)
+      this.logger.error(`User with uuid ${userUuid} not found`)
+      throw new HttpException(ChatMessages.BadRequest, HttpStatus.BAD_REQUEST)
     }
 
-    // Criar a mensagem na base de dados
-    const newMessage = await this.messageRepository.create({
-      chat_id: chatId,
-      user_id: userId,
-      content,
-      is_agent: false,
+    const response = await this.chatRepository.create({
+      title: 'New Chat',
+      user_id: user.id,
     })
 
-    // Enviar a mensagem para RabbitMQ
-    this.chatClient.emit('chat_request', newMessage)
+    this.logger.verbose(response)
 
-    return { success: true, chatId, userId, content }
+    return new CreateChatResponse(response, user)
+  }
+
+  async getUserChats(userUuid: User['uuid']) {
+    const user = await this.userRepository.getByUuid(userUuid)
+    this.logger.log(user)
+    if (!user) {
+      this.logger.error(`User with uuid ${userUuid} not found`)
+      throw new HttpException(ChatMessages.BadRequest, HttpStatus.BAD_REQUEST)
+    }
+    const response = await this.chatRepository.getByUserUuid(userUuid)
+    return response.map((chat) => new CreateChatResponse(chat, user))
+  }
+
+  async getMessages(chatUuid: Chat['uuid']) {
+    const chat = await this.chatRepository.getByUuid(chatUuid)
+    if (!chat) {
+      this.logger.error(`Chat with uuid ${chatUuid} not found`)
+      throw new HttpException(ChatMessages.BadRequest, HttpStatus.BAD_REQUEST)
+    }
+    return this.messageRepository.getByChatId(chat.id)
+  }
+
+  async sendMessage(request: CreateMessageRequest) {
+    this.logger.log(`Sending Message to RabbitMQ: ${request.getContent()}`)
+
+    const user = await this.userRepository.getByUuid(request.getUserUuid())
+    if (!user) {
+      this.logger.error(`User with uuid ${request.getUserUuid()} not found`)
+      throw new HttpException(ChatMessages.BadRequest, HttpStatus.BAD_REQUEST)
+    }
+
+    const chat = await this.chatRepository.getByUuid(request.getChatUuid())
+    if (!chat) {
+      this.logger.error(`Chat with uuid ${request.getChatUuid()} not found`)
+      throw new HttpException(ChatMessages.BadRequest, HttpStatus.BAD_REQUEST)
+    }
+
+    const message = await this.messageRepository.create({
+      chat_id: chat.id,
+      user_id: user.id,
+      content: request.getContent(),
+      is_agent: false,
+      created_at: new Date(),
+    })
+
+    this.chatClient.emit('chat_request', message)
+    return new GetMessageResponse(message, chat)
   }
 }
 

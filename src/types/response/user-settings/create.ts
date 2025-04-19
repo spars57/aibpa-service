@@ -3,7 +3,7 @@ import { UserSettings, UserSettingsKey } from '@prisma/client'
 
 class CreateUserSettingsResponse {
   @ApiProperty()
-  private userId: number
+  private userUuid: string
 
   @ApiProperty()
   private key: UserSettingsKey
@@ -19,13 +19,6 @@ class CreateUserSettingsResponse {
 
   @ApiProperty()
   private uuid: string
-
-  @ApiProperty()
-  private id: number
-
-  public getUserId(): number {
-    return this.userId
-  }
 
   public getKey(): string {
     return this.key
@@ -47,12 +40,8 @@ class CreateUserSettingsResponse {
     return this.uuid
   }
 
-  public getId(): number {
-    return this.id
-  }
-
-  public setUserId(userId: number): void {
-    this.userId = userId
+  public setUserUuid(userUuid: string): void {
+    this.userUuid = userUuid
   }
 
   public setKey(key: UserSettingsKey): void {
@@ -75,31 +64,21 @@ class CreateUserSettingsResponse {
     this.uuid = uuid
   }
 
-  public setId(id: number): void {
-    this.id = id
+  public getUserUuid(): string {
+    return this.userUuid
   }
 
-  public constructor(userSettings?: UserSettings) {
+  public constructor(userSettings?: UserSettings, userUuid?: string) {
     if (userSettings) {
-      this.setUserId(userSettings.user_id)
       this.setKey(userSettings.key)
       this.setValue(userSettings.value)
       this.setCreatedAt(userSettings.created_at)
       this.setUpdatedAt(userSettings.updated_at)
       this.setUuid(userSettings.uuid)
-      this.setId(userSettings.id)
     }
-  }
 
-  public toUserSettings(): UserSettings {
-    return {
-      user_id: this.userId,
-      key: this.key,
-      value: this.value,
-      id: this.id,
-      uuid: this.uuid,
-      created_at: this.createdAt,
-      updated_at: this.updatedAt,
+    if (userUuid) {
+      this.setUserUuid(userUuid)
     }
   }
 }

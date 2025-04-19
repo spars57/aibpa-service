@@ -1,14 +1,23 @@
 import { Injectable } from '@nestjs/common'
 import { User, UserSettings, UserSettingsKey } from '@prisma/client'
 import PrismaService from 'src/prisma.service'
+import CreateUserSettingsRequest from 'src/types/request/user-settings/create'
 
 @Injectable()
 class UserSettingsRepository {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: UserSettings) {
+  async create(data: CreateUserSettingsRequest) {
+    const user = await this.prisma.user.findFirst({ where: { uuid: data.getUserUuid() } })
+    if (!user) {
+      throw new Error('User not found')
+    }
     return this.prisma.userSettings.create({
-      data,
+      data: {
+        key: data.getKey() as UserSettingsKey,
+        value: data.getValue(),
+        user_id: user.id,
+      },
     })
   }
 
@@ -20,8 +29,11 @@ class UserSettingsRepository {
     return this.prisma.userSettings.findMany({ where: { user_id: user.id, key } })
   }
 
-  async update(id: UserSettings['id'], data: UserSettings) {
-    return this.prisma.userSettings.update({ where: { id }, data })
+  async update(id: UserSettings['id'], data: CreateUserSettingsRequest) {
+    return this.prisma.userSettings.update({
+      where: { id },
+      data: { key: data.getKey() as UserSettingsKey, value: data.getValue() },
+    })
   }
 
   async delete(userUuid: User['uuid'], key: UserSettingsKey) {

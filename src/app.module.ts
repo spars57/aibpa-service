@@ -1,24 +1,23 @@
 import { Module } from '@nestjs/common'
 import { ClientsModule, Transport } from '@nestjs/microservices'
 import ChatProcessor from './chat/chat-processor'
-import AuthController from './controller/auth'
+import AuthenticationController from './controller/authentication'
 import ChatController from './controller/chat'
-import HealthController from './controller/health'
 import UserSettingsController from './controller/user-settings'
-import AuthInterceptor from './interceptor/auth'
+import AuthInterceptor from './interceptor/authentication'
 import PrismaService from './prisma.service'
 import AccessTokenRepository from './repository/access-token'
 import ChatRepository from './repository/chat'
 import MessageRepository from './repository/message'
 import UserRepository from './repository/user'
 import UserSettingsRepository from './repository/user-settings'
-import AuthService from './service/auth'
+import AuthenticationService from './service/authentication'
 import ChatService from './service/chat'
 import UserSettingsService from './service/user-settings'
 
-const SERVICES = [AuthService, PrismaService, ChatService, UserSettingsService]
+const SERVICES = [AuthenticationService, PrismaService, ChatService, UserSettingsService]
 const REPOSITORIES = [UserRepository, AccessTokenRepository, MessageRepository, ChatRepository, UserSettingsRepository]
-const CONTROLLERS = [AuthController, HealthController, ChatController, UserSettingsController]
+const CONTROLLERS = [AuthenticationController, ChatController, UserSettingsController]
 const INTERCEPTORS = [AuthInterceptor]
 
 @Module({

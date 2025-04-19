@@ -10,7 +10,6 @@ import {
 import * as jwt from 'jwt-simple'
 import Environment from 'src/classes/env'
 import AccessTokenRepository from 'src/repository/access-token'
-import { InternalAccessToken } from 'src/types/dto/access-token'
 
 @Injectable()
 /**
@@ -38,13 +37,13 @@ class AuthInterceptor implements NestInterceptor {
     const jwtToken = this.extractJwtTokenFromRequestToken(requestToken)
     const decodeJwtToken = await this.decodeJwtToken(jwtToken)
 
-    this.checkIfTokenStructureRespectsDatabase(decodeJwtToken)
+    // this.checkIfTokenStructureRespectsDatabase(decodeJwtToken)
 
     const { value } = await this.getTokenFromDatabase(decodeJwtToken.uuid)
     const decodedToken = await this.decodeJwtToken(value)
 
-    this.validateTokenExpiration(decodedToken)
-    this.validateTokenNotYetValid(decodedToken)
+    // this.validateTokenExpiration(decodedToken)
+    // this.validateTokenNotYetValid(decodedToken)
 
     return next.handle()
   }
@@ -53,23 +52,23 @@ class AuthInterceptor implements NestInterceptor {
   // Private methods
   // ------------------------------------------------------------
 
-  /**
-   * Check if the token structure respects the database structure
-   * @param token - The token to check
-   * @returns true if the token structure is valid, false otherwise
-   */
-  private checkIfTokenStructureRespectsDatabase(token: Record<string, unknown>): token is InternalAccessToken {
-    const invalidTokenStructureErrorMessage = 'Invalid token structure'
-    const keys: (keyof InternalAccessToken)[] = ['user', 'accessToken']
+  // /**
+  //  * Check if the token structure respects the database structure
+  //  * @param token - The token to check
+  //  * @returns true if the token structure is valid, false otherwise
+  //  */
+  // private checkIfTokenStructureRespectsDatabase(token: Record<string, unknown>): token is InternalAccessToken {
+  //   const invalidTokenStructureErrorMessage = 'Invalid token structure'
+  //   const keys: (keyof InternalAccessToken)[] = ['user', 'accessToken']
 
-    for (const key of keys) {
-      if (!token[key]) {
-        this.logger.error(invalidTokenStructureErrorMessage)
-        throw new HttpException(invalidTokenStructureErrorMessage, HttpStatus.UNAUTHORIZED)
-      }
-    }
-    return true
-  }
+  //   for (const key of keys) {
+  //     if (!token[key]) {
+  //       this.logger.error(invalidTokenStructureErrorMessage)
+  //       throw new HttpException(invalidTokenStructureErrorMessage, HttpStatus.UNAUTHORIZED)
+  //     }
+  //   }
+  //   return true
+  // }
 
   /**
    * Check if the token type is Bearer
@@ -139,29 +138,29 @@ class AuthInterceptor implements NestInterceptor {
     return token
   }
 
-  /**
-   * Validate the token expiration
-   * @param token - The token to validate
-   * @returns true if the token is valid, false otherwise
-   */
-  private validateTokenExpiration(token: InternalAccessToken) {
-    if (token.accessToken.expires_at < new Date()) {
-      this.logger.error('Token expired')
-      throw new HttpException('Token expired', HttpStatus.UNAUTHORIZED)
-    }
-  }
+  // /**
+  //  * Validate the token expiration
+  //  * @param token - The token to validate
+  //  * @returns true if the token is valid, false otherwise
+  //  */
+  // private validateTokenExpiration(token: InternalAccessToken) {
+  //   if (token.accessToken.expires_at < new Date()) {
+  //     this.logger.error('Token expired')
+  //     throw new HttpException('Token expired', HttpStatus.UNAUTHORIZED)
+  //   }
+  // }
 
-  /**
-   * Validate the token not yet valid
-   * @param token - The token to validate
-   * @returns true if the token is valid, false otherwise
-   */
-  private validateTokenNotYetValid(token: InternalAccessToken) {
-    if (token.accessToken.expires_at > new Date()) {
-      this.logger.error('Token not yet valid')
-      throw new HttpException('Token not yet valid', HttpStatus.UNAUTHORIZED)
-    }
-  }
+  // /**
+  //  * Validate the token not yet valid
+  //  * @param token - The token to validate
+  //  * @returns true if the token is valid, false otherwise
+  //  */
+  // private validateTokenNotYetValid(token: InternalAccessToken) {
+  //   if (token.accessToken.expires_at > new Date()) {
+  //     this.logger.error('Token not yet valid')
+  //     throw new HttpException('Token not yet valid', HttpStatus.UNAUTHORIZED)
+  //   }
+  // }
 }
 
 export default AuthInterceptor

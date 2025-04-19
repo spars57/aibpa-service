@@ -1,18 +1,18 @@
 import { Logger } from '@nestjs/common'
 
-const keys = [
-  'SALT',
-  'NODE_ENV',
-  'PORT',
-  'DATABASE_URL',
-  'JWT_SECRET',
-  'JWT_VALIDITY_PERIOD',
-  'AI_URL',
-  'RABBITMQ_URL',
-  'ALLOWED_ORIGINS',
-] as const
+export const EnvironmentKeysEnum = {
+  SALT: 'SALT',
+  NODE_ENV: 'NODE_ENV',
+  PORT: 'PORT',
+  DATABASE_URL: 'DATABASE_URL',
+  JWT_SECRET: 'JWT_SECRET',
+  JWT_VALIDITY_PERIOD: 'JWT_VALIDITY_PERIOD',
+  AI_URL: 'AI_URL',
+  RABBITMQ_URL: 'RABBITMQ_URL',
+  ALLOWED_ORIGINS: 'ALLOWED_ORIGINS',
+} as const
 
-type EnvKey = (typeof keys)[number]
+type EnvKey = (typeof EnvironmentKeysEnum)[keyof typeof EnvironmentKeysEnum]
 
 class Environment {
   private logger: Logger
@@ -38,7 +38,7 @@ class Environment {
   constructor() {
     this.logger = new Logger(this.constructor.name)
 
-    keys.forEach((key) => {
+    Object.values(EnvironmentKeysEnum).forEach((key) => {
       this.checkIfEnvIsSet(key)
       this[key] = process.env[key]!
     })

@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
@@ -8,6 +8,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   const logger = new Logger('Bootstrap')
   const port = process.env.PORT ?? 3000
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  )
 
   const config = new DocumentBuilder()
     .setTitle('AIBPA Service API')
