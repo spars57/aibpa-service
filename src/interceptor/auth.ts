@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common'
 import * as jwt from 'jwt-simple'
 import Environment from 'src/classes/env'
-import AccessTokenRepository from 'src/respository/access-token'
+import AccessTokenRepository from 'src/repository/access-token'
 import { InternalAccessToken } from 'src/types/dto/access-token'
 
 @Injectable()

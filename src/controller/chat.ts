@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common'
 import { Chat, User } from '@prisma/client'
-import { ChatService } from '../service/chatservice'
+import { ChatService } from '../service/chat'
 
 @Controller('chat')
 export class ChatController {

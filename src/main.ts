@@ -1,14 +1,27 @@
 import { Logger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { AppModule } from './app.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   const logger = new Logger('Bootstrap')
   const port = process.env.PORT ?? 3000
+
+  const config = new DocumentBuilder()
+    .setTitle('AIBPA Service API')
+    .setDescription(
+      'The backend API of the Intelligent Personal Assistant, built to manage multi-agent communication, process user requests, and orchestrate task automation. This API serves as the core of the system, enabling agents to collaborate and integrate with third-party services.',
+    )
+    .setVersion('1.0.0')
+    .addTag('aibpa')
+    .build()
+  const documentFactory = () => SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('api', app, documentFactory)
+
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: process.env.ALLOWED_ORIGINS!.split(','),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })
@@ -16,13 +29,13 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: ['amqp://localhost:5672'],
+      urls: [process.env.RABBITMQ_URL!],
       queue: 'chat_queue',
       queueOptions: {
-        durable: false
+        durable: false,
       },
     },
-  });
+  })
 
   await app.startAllMicroservices()
   await app.listen(port)

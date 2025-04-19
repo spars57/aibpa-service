@@ -29,6 +29,14 @@ class UserRepository {
     })
   }
 
+  public async getById(id: User['id']): Promise<User | null> {
+    return await this.prisma.user.findUnique({
+      where: {
+        id: parseInt(id.toString()),
+      },
+    })
+  }
+
   public async getByEmail(email: User['email']): Promise<User | null> {
     return await this.prisma.user.findFirst({
       where: {

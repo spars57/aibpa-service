@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common'
 import { ClientProxy } from '@nestjs/microservices'
 import { Chat, User } from '@prisma/client'
 import BaseService from 'src/classes/base-service'
-import ChatRepository from '../respository/chat'
-import MessageRepository from '../respository/message'
+import ChatRepository from '../repository/chat'
+import MessageRepository from '../repository/message'
 
 @Injectable()
 export class ChatService extends BaseService {
