@@ -26,6 +26,9 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config)
   SwaggerModule.setup('api', app, documentFactory)
 
+  // Para gerar o arquivo OpenAPI
+  require('fs').writeFileSync('./swagger-spec.json', JSON.stringify(documentFactory(), null, 2))
+
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS!.split(','),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],

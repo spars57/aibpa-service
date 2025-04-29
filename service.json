@@ -1,0 +1,632 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/authentication/login": {
+      "post": {
+        "operationId": "AuthenticationController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email and password are required."
+          },
+          "401": {
+            "description": "Invalid credentials."
+          },
+          "500": {
+            "description": "Something went wrong."
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/authentication/register": {
+      "post": {
+        "operationId": "AuthenticationController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Register successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email, password, username, first name, last name, city, and country are required."
+          },
+          "409": {
+            "description": "User already registered."
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/authentication/logout": {
+      "get": {
+        "operationId": "AuthenticationController_logout",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "The authorization header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Logout successful"
+          }
+        },
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/chat/{userUuid}": {
+      "post": {
+        "operationId": "ChatController_createChat",
+        "parameters": [
+          {
+            "name": "userUuid",
+            "required": true,
+            "in": "path",
+            "description": "The UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateChatResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Chat"
+        ]
+      },
+      "get": {
+        "operationId": "ChatController_getUserChats",
+        "parameters": [
+          {
+            "name": "userUuid",
+            "required": true,
+            "in": "path",
+            "description": "The UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CreateChatResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/chat/{chatUuid}/messages": {
+      "get": {
+        "operationId": "ChatController_getMessages",
+        "parameters": [
+          {
+            "name": "chatUuid",
+            "required": true,
+            "in": "path",
+            "description": "The UUID of the chat",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetMessageResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/chat/message/create": {
+      "post": {
+        "operationId": "ChatController_sendMessage",
+        "parameters": [
+          {
+            "name": "chatUuid",
+            "required": true,
+            "in": "path",
+            "description": "The UUID of the chat",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The message to send",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/user-settings/{uuid}": {
+      "get": {
+        "operationId": "UserSettingsController_getByUserId",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "The authorization token",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "The UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User settings retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CreateUserSettingsResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The provided request did not match the expected request."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "User Settings"
+        ]
+      }
+    },
+    "/user-settings": {
+      "post": {
+        "operationId": "UserSettingsController_create",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "The authorization token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUserSettingsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The provided request did not match the expected request."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "User Settings"
+        ]
+      }
+    },
+    "/user-settings/{uuid}/{key}": {
+      "delete": {
+        "operationId": "UserSettingsController_delete",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "description": "The key of the user setting",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "The authorization token",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uuid",
+            "required": true,
+            "in": "path",
+            "description": "The UUID of the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User settings deleted successfully."
+          },
+          "400": {
+            "description": "The provided request did not match the expected request."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "tags": [
+          "User Settings"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "AIBPA Service API",
+    "description": "The backend API of the Intelligent Personal Assistant, built to manage multi-agent communication, process user requests, and orchestrate task automation. This API serves as the core of the system, enabling agents to collaborate and integrate with third-party services.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "aibpa",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "country",
+          "city",
+          "username",
+          "email",
+          "password"
+        ]
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid"
+        ]
+      },
+      "CreateChatResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          },
+          "userUuid": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "userUuid",
+          "title",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GetMessageResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          },
+          "chatUuid": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "isAgent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "uuid",
+          "chatUuid",
+          "content",
+          "createdAt",
+          "updatedAt",
+          "isAgent"
+        ]
+      },
+      "CreateMessageRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "userUuid": {
+            "type": "string"
+          },
+          "chatUuid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "userUuid",
+          "chatUuid"
+        ]
+      },
+      "CreateUserSettingsResponse": {
+        "type": "object",
+        "properties": {
+          "userUuid": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "uuid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userUuid",
+          "key",
+          "value",
+          "createdAt",
+          "updatedAt",
+          "uuid"
+        ]
+      },
+      "CreateUserSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "userUuid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value",
+          "userUuid"
+        ]
+      }
+    }
+  }
+}

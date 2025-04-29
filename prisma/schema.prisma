@@ -46,15 +46,15 @@ model Chat {
 }
 
 model Message {
-  id        Int      @id @default(autoincrement())
-  uuid      String   @unique @default(uuid())
-  chat_id   Int
-  content   String
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid())
+  chat_id    Int
+  content    String
+  is_agent   Boolean  @default(false)
+  user_id    Int
   created_at DateTime @default(now())
-  is_agent  Boolean  @default(false)
-  user_id   Int
-  chat      Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
-  user      User     @relation("UserMessages", fields: [user_id], references: [id])
+  chat       Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  user       User     @relation("UserMessages", fields: [user_id], references: [id])
 }
 
 model UserSettings {
