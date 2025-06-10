@@ -8,3 +8,13 @@ services:
       POSTGRES_DB: aibpa
     ports:
       - '5432:5432'
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672' # Porta AMQP
+      - '15672:15672' # Porta do painel de administração (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest

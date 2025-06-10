@@ -1,8 +1,18 @@
 import { Logger } from '@nestjs/common'
 
-const keys = ['SALT', 'NODE_ENV', 'PORT', 'DATABASE_URL', 'JWT_SECRET', 'JWT_VALIDITY_PERIOD', 'LANGFLOW_URL'] as const
+export const EnvironmentKeysEnum = {
+  SALT: 'SALT',
+  NODE_ENV: 'NODE_ENV',
+  PORT: 'PORT',
+  DATABASE_URL: 'DATABASE_URL',
+  JWT_SECRET: 'JWT_SECRET',
+  JWT_VALIDITY_PERIOD: 'JWT_VALIDITY_PERIOD',
+  AI_URL: 'AI_URL',
+  RABBITMQ_URL: 'RABBITMQ_URL',
+  ALLOWED_ORIGINS: 'ALLOWED_ORIGINS',
+} as const
 
-type EnvKey = (typeof keys)[number]
+type EnvKey = (typeof EnvironmentKeysEnum)[keyof typeof EnvironmentKeysEnum]
 
 class Environment {
   private logger: Logger
@@ -13,7 +23,10 @@ class Environment {
   private DATABASE_URL: string
   private JWT_SECRET: string
   private JWT_VALIDITY_PERIOD: string
-  private LANGFLOW_URL: string
+  private AI_URL: string
+  private RABBITMQ_URL: string
+  private ALLOWED_ORIGINS: string
+
   private checkIfEnvIsSet(key: EnvKey) {
     //this.logger.log(`Checking if environment variable ${key} is set`);
     if (!process.env[key]) {
@@ -25,7 +38,7 @@ class Environment {
   constructor() {
     this.logger = new Logger(this.constructor.name)
 
-    keys.forEach((key) => {
+    Object.values(EnvironmentKeysEnum).forEach((key) => {
       this.checkIfEnvIsSet(key)
       this[key] = process.env[key]!
     })

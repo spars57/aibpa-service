@@ -8,20 +8,21 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
   password      String
-  uuid          String        @unique @default(uuid())
-  created_at    DateTime      @default(now())
-  username      String        @unique
-  updated_at    DateTime      @updatedAt
+  uuid          String         @unique
+  created_at    DateTime       @default(now())
+  username      String         @unique
+  updated_at    DateTime       @updatedAt
   city          String
   country       String
   first_name    String
   last_name     String
   access_tokens AccessToken[]
-  chats         Chat[]        @relation("UserChats")
-  messages      Message[]     @relation("UserMessages")
+  chats         Chat[]         @relation("UserChats")
+  messages      Message[]      @relation("UserMessages")
+  settings      UserSettings[]
 }
 
 model AccessToken {
@@ -35,23 +36,39 @@ model AccessToken {
 
 model Chat {
   id         Int       @id @default(autoincrement())
-  chat_uuid  String    @unique @default(uuid())
   title      String
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   user_id    Int
+  uuid       String    @unique @default(uuid())
   user       User      @relation("UserChats", fields: [user_id], references: [id])
   messages   Message[]
 }
 
 model Message {
-  id        Int      @id @default(autoincrement())
-  uuid      String   @unique @default(uuid())
-  chat_id   Int
-  content   String
-  timestamp DateTime @default(now())
-  is_agent  Boolean  @default(false)
-  user_id   Int
-  chat      Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
-  user      User     @relation("UserMessages", fields: [user_id], references: [id])
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique @default(uuid())
+  chat_id    Int
+  content    String
+  is_agent   Boolean  @default(false)
+  user_id    Int
+  created_at DateTime @default(now())
+  chat       Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  user       User     @relation("UserMessages", fields: [user_id], references: [id])
+}
+
+model UserSettings {
+  id         Int             @id @default(autoincrement())
+  user_id    Int
+  created_at DateTime        @default(now())
+  updated_at DateTime        @updatedAt
+  key        UserSettingsKey
+  value      String
+  uuid       String          @unique @default(uuid())
+  user       User            @relation(fields: [user_id], references: [id])
+}
+
+enum UserSettingsKey {
+  GOOGLE_CALENDAR_API_KEY
+  OPENAI_API_KEY
 }

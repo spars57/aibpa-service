@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common'
 import * as crypto from 'crypto'
 import Environment from 'src/classes/env'
 
@@ -6,8 +7,10 @@ import Environment from 'src/classes/env'
  */
 class Encrypt {
   private readonly env: Environment
+  private readonly logger: Logger
   constructor() {
     this.env = new Environment()
+    this.logger = new Logger(Encrypt.name)
   }
 
   /**
