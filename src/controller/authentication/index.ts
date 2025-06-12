@@ -20,9 +20,11 @@ class AuthenticationController extends BaseController {
    */
   @Decorators.SwaggerLoginResponse()
   @Post('login')
-  public async login(@Body() request: LoginRequest) {
+  public async login(@Body() request: LoginRequest, @Res() res: Response) {
     this.logger.log(`Logging in user ${request.getEmail()}`)
-    return this.authenticationService.login(request)
+    const response = await this.authenticationService.login(request)
+    if (response.getAccessToken()) res.status(HttpStatus.OK).send(response)
+    res.status(HttpStatus.UNAUTHORIZED).send()
   }
 
   /**
@@ -37,6 +39,7 @@ class AuthenticationController extends BaseController {
   public async register(@Body() request: RegisterRequest, @Res() res: Response) {
     this.logger.log(`Registering new user ${request.getEmail()}`)
     const response = await this.authenticationService.register(request)
+    this.logger.log(`User ${request.getEmail()} registered successfully`)
     res.status(HttpStatus.CREATED).send(response)
   }
 

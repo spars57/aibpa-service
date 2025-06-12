@@ -30,7 +30,8 @@ async function bootstrap() {
   require('fs').writeFileSync('./swagger-spec.json', JSON.stringify(documentFactory(), null, 2))
 
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS!.split(','),
+    origin: '*',
+    headers: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })
