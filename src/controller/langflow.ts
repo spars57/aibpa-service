@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseInterceptors } from '@nestjs/common'
-import AuthInterceptor from 'src/interceptor/auth'
+import AuthInterceptor from 'src/interceptor/authentication'
 import LangflowService from 'src/service/langflow'
 import { LangflowQueryRequest } from 'src/types/request/langflow'
 

@@ -10,6 +10,7 @@ export const EnvironmentKeysEnum = {
   AI_URL: 'AI_URL',
   RABBITMQ_URL: 'RABBITMQ_URL',
   ALLOWED_ORIGINS: 'ALLOWED_ORIGINS',
+  LANGFLOW_URL: 'LANGFLOW_URL',
 } as const
 
 type EnvKey = (typeof EnvironmentKeysEnum)[keyof typeof EnvironmentKeysEnum]
@@ -26,6 +27,7 @@ class Environment {
   private AI_URL: string
   private RABBITMQ_URL: string
   private ALLOWED_ORIGINS: string
+  private LANGFLOW_URL: string
 
   private checkIfEnvIsSet(key: EnvKey) {
     //this.logger.log(`Checking if environment variable ${key} is set`);
