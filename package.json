@@ -5,6 +5,7 @@
   "author": "UAL",
   "private": true,
   "license": "MIT",
+  "packageManager": "yarn@1.22.22",
   "scripts": {
     "build": "dotenv -e .env -- yarn db:migrate && yarn db:generate && yarn db:push && yarn db:pull && nest build",
     "db:pull": "dotenv -e .env -- npx prisma db pull",
@@ -94,4 +95,5 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }
+  
 }
