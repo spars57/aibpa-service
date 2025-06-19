@@ -9,7 +9,6 @@ export const EnvironmentKeysEnum = {
   JWT_VALIDITY_PERIOD: 'JWT_VALIDITY_PERIOD',
   AI_URL: 'AI_URL',
   RABBITMQ_URL: 'RABBITMQ_URL',
-  ALLOWED_ORIGINS: 'ALLOWED_ORIGINS',
   LANGFLOW_URL: 'LANGFLOW_URL',
 } as const
 
@@ -26,7 +25,6 @@ class Environment {
   private JWT_VALIDITY_PERIOD: string
   private AI_URL: string
   private RABBITMQ_URL: string
-  private ALLOWED_ORIGINS: string
   private LANGFLOW_URL: string
 
   private checkIfEnvIsSet(key: EnvKey) {
