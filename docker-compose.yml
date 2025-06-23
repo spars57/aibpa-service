@@ -1,14 +1,4 @@
 services:
-  db:
-    image: postgres:17
-    restart: always
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: aibpa
-    ports:
-      - '5432:5432'
-
   rabbitmq:
     image: rabbitmq:4-management
     container_name: rabbitmq
