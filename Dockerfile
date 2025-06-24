@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json .
 
 RUN yarn
+EXPOSE 8080
 
 COPY . .
 
