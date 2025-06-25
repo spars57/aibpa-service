@@ -12,7 +12,7 @@ export class ChatProcessor {
   constructor(private prisma: PrismaService) {}
 
   @EventPattern('chat_request')
-  async handleChatRequest(@Payload() message: any) {
+  async handleChatRequest(@Payload() message: Record<string, unknown>) {
     try {
       this.logger.log(`Getting Message from RabbitMQ: ${JSON.stringify(message)}`)
       this.logger.log(`AI_URL: ${this.env.get('AI_URL')}`)
@@ -30,7 +30,7 @@ export class ChatProcessor {
             },
           },
         )
-        .catch((e) => {
+        .catch((e: Error) => {
           this.logger.error('AI Request Failed: ' + e.message)
         })
 
@@ -41,14 +41,14 @@ export class ChatProcessor {
         is_agent: true,
       }
 
-      const savedMessage = await this.prisma.message.create({ data }).catch((e) => {
+      const savedMessage = await this.prisma.message.create({ data } as any).catch((e: Error) => {
         this.logger.error('Error saving message: ' + e.message)
       })
 
       this.logger.log(`Message processed: ${JSON.stringify(savedMessage)}`)
       return savedMessage
-    } catch (error) {
-      this.logger.error('Error processing message: ' + error.message)
+    } catch (error: unknown) {
+      this.logger.error('Error processing message: ' + (error as Error).message)
       //throw error
     }
   }
