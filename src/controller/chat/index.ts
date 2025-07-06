@@ -33,7 +33,6 @@ export class ChatController extends BaseController {
   @Decorators.SwaggerGetMessagesResponse()
   @Get('/:chatUuid/messages')
   async getMessages(@Param('chatUuid') chatUuid: Chat['uuid'], @Res() res: Response) {
-    this.logger.verbose(`Getting messages for chat ${chatUuid}`)
     const response = await this.chatService.getMessages(chatUuid)
     return res.status(HttpStatus.OK).json(response)
   }

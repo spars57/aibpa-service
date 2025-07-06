@@ -7,7 +7,6 @@ import {
   Logger,
   NestInterceptor,
 } from '@nestjs/common'
-import { AccessToken } from '@prisma/client'
 import * as jwt from 'jwt-simple'
 import Environment from 'src/classes/env'
 import AccessTokenRepository from 'src/repository/access-token'
@@ -134,7 +133,6 @@ class AuthInterceptor implements NestInterceptor {
    * @returns the token
    */
   private async getTokenFromDatabase(uuid: string) {
-    this.logger.log('Getting token from database')
     const token = await this.accessTokenRepository.findByUuid(uuid)
     if (!token) {
       this.logger.error('Token not found on database')
